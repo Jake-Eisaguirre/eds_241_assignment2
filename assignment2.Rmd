@@ -1,0 +1,114 @@
+---
+title: "EDS241: Assignment 2"
+author: "Jake Eisaguirre"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: 
+  pdf_document:
+    toc: false
+    number_sections: yes
+header-includes:
+  - \setlength{\parindent}{1em}
+  - \usepackage{float}
+--- 
+  
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(here)
+library(tidyverse)
+library(janitor)
+library(kableExtra)
+library(estimatr)
+library(broom)
+```
+
+### Clean and plot data
+
+\noindent The following code loads and cleans the data.
+```{r}
+data <- read_csv(here("NBP.csv")) %>% 
+  clean_names() %>% 
+  mutate(log_dnox = log(dnox_masstons))
+```
+
+### (a) Make a histogram depicting the distribution of Dnox_masstons
+
+\noindent The following code plots the data
+```{r}
+#Not normally distributed????
+ggplot(data = data, aes(x = dnox_masstons)) +
+  geom_histogram() +
+  theme_classic()
+
+  
+```
+
+### (b) Create an indicator =1 if the county has PctBlack above the sample median, and =0 otherwise (in the rest of the assignment, I refer to this variable as ‘D’). What is the average of PctBlack for counties above the median, i.e. counties for which D=1?
+
+\noindent The following code finds the median of PctBlack and creates an indicator of 1 if above the medium and finds the average of PctBlack for counties above the median
+```{r}
+med <- print(median(data$pct_black))
+
+data <- data %>%
+  mutate(D = ifelse(pct_black > med, c(1), c(0))) 
+
+ave_pctblack <- data %>% 
+  filter(D == 1) %>% 
+  summarise(ave_pctBlack = mean(pct_black))
+
+print(ave_pctblack)
+
+kable(ave_pctblack)
+
+```
+
+\noindent The average PctBlack for counties above the median is 19.909.
+
+
+### (c) Estimate a regression of Dnox_masstons on NBP. Interpret the estimated intercept and the coefficient on NBP.
+
+\noindent The following code regresses Dnox_masstons on NBP
+```{r}
+mod1 <- lm_robust(dnox_masstons ~ nbp, data = data)
+
+tidy(mod1) %>% 
+  kable()
+```
+\noindent Intercept: On average when the county has not been regulated under the NOx Budget program (nbp = 0) the change in annual NOx emmisions from all power plants in the counties between 2000-2008 will be -3.62 tons. 
+
+Slope: When the county has been regulated under the NOx Budget program (nbp = 1) the change in annual NOx emmissions from all power plants in the counties between 2000-2008 will be -3.91 tons.
+
+
+###(d) Create an interaction between the variables NBP and D. Estimate a regression of Dnox_masstons on NBP, D, and this interaction. Interpret each estimated regression coefficient, including the intercept.
+
+\noindent The following code regresses dnox_masstons on NBP, D (median indicator of pct_black), and NBP as an interaction with D.
+```{r}
+mod2 <- lm_robust(dnox_masstons ~ nbp + D + nbp:D, data = data)
+
+tidy(mod2) %>% 
+  kable()
+```
+\noindent NBP: When all else is held constant, on average counties that have been regulated under the NOx Budget program (nbp = 1) will have a change in annual NOx emmissions from all power plants in the counties between 2000-2008 of -6.33 tons.
+
+D: When all else is held constant, on average counties that have an average PctBlack above the median (19.909)(D=1) will have a change in annual NOx emmissions from all power plants in the counties between 2000-2008 of -2.21 tons.
+
+NBP:D : The impact of NOx Budget program on annual NOx emmissions from all power plants in the counties between 2000-2008 is 5.04 tons greater in communities that have an average PctBlack above the median (19.909)(D=1) then communities that have an average PctBlack below the median (19.909)(D=0).
+
+Intercept: On average when the county has not been regulated under the NOx Budget program (nbp = 0) and the PctBlack is below the median (19.909)(D=0) the change in annual NOx emmisions from all power plants in the counties between 2000-2008 will be -2.60 tons
+
+
+### (e) What is the predicted Dnox_masstons in a county that was not regulated under NBP and where PctBlack is above the sample median (i.e., where D=1)? Report the 95% confidence interval for this prediction. Make sure to use “heteroskedasticity-robust” standard errors.
+
+\noindent The following code regresses dnox_masstons on counties not regulated by NBP and where the PctBlack is above the sample median (D=1)
+```{r}
+
+mod3 <- lm_robust(dnox_masstons ~ nbp + D , data = data)
+pred_data <- data.frame(nbp=c(0), D=c(1))
+
+tidy(mod3) %>% 
+  kable()
+
+predict(mod3, newdata = pred_data, se.fit = T, interval = 'confidence')
+
+  
+```
+\noindent The predicted annual change in NOx emmissions from all power plants in the counties between 2000-2008 under no regulation from NBP (NBP=0) and when the PctBacl is below the sample median (D=0) is -3.62 tons. The 95% confidence under heterskedasticity-robust standard errors is -4.87 tons - -2.34 tons.
