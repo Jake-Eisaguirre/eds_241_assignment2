@@ -19,22 +19,22 @@ library(janitor)
 library(kableExtra)
 library(estimatr)
 library(broom)
+library(readxl)
 ```
 
 ### Clean and plot data
 
 \noindent The following code loads and cleans the data.
 ```{r}
-data <- read_csv(here("NBP.csv")) %>% 
-  clean_names() %>% 
-  mutate(log_dnox = log(dnox_masstons))
+data <- read_excel(here("NBP.xls")) %>% 
+  clean_names()
 ```
 
 ### (a) Make a histogram depicting the distribution of Dnox_masstons
 
 \noindent The following code plots the data
 ```{r}
-#Not normally distributed????
+
 ggplot(data = data, aes(x = dnox_masstons)) +
   geom_histogram() +
   theme_classic()
@@ -61,7 +61,7 @@ kable(ave_pctblack)
 
 ```
 
-\noindent The average PctBlack for counties above the median is 19.909.
+\noindent The average PctBlack for counties above the median is 19.313.
 
 
 ### (c) Estimate a regression of Dnox_masstons on NBP. Interpret the estimated intercept and the coefficient on NBP.
@@ -73,12 +73,12 @@ mod1 <- lm_robust(dnox_masstons ~ nbp, data = data)
 tidy(mod1) %>% 
   kable()
 ```
-\noindent Intercept: On average when the county has not been regulated under the NOx Budget program (nbp = 0) the change in annual NOx emmisions from all power plants in the counties between 2000-2008 will be -3.62 tons. 
+\noindent Intercept: On average when the county has not been regulated under the NOx Budget program (nbp = 0) the change in NOx emmisions from all power plants in the counties between 2000-2008 will be -3.62 tons. 
 
-Slope: When the county has been regulated under the NOx Budget program (nbp = 1) the change in annual NOx emmissions from all power plants in the counties between 2000-2008 will be -3.91 tons.
+Slope: When the county has been regulated under the NOx Budget program (nbp = 1) the change in NOx emmissions from all power plants in the counties between 2000-2008 will be -3.92 tons.
 
 
-###(d) Create an interaction between the variables NBP and D. Estimate a regression of Dnox_masstons on NBP, D, and this interaction. Interpret each estimated regression coefficient, including the intercept.
+### (d) Create an interaction between the variables NBP and D. Estimate a regression of Dnox_masstons on NBP, D, and this interaction. Interpret each estimated regression coefficient, including the intercept.
 
 \noindent The following code regresses dnox_masstons on NBP, D (median indicator of pct_black), and NBP as an interaction with D.
 ```{r}
@@ -87,13 +87,13 @@ mod2 <- lm_robust(dnox_masstons ~ nbp + D + nbp:D, data = data)
 tidy(mod2) %>% 
   kable()
 ```
-\noindent NBP: When all else is held constant, on average counties that have been regulated under the NOx Budget program (nbp = 1) will have a change in annual NOx emmissions from all power plants in the counties between 2000-2008 of -6.33 tons.
+\noindent NBP: When all else is held constant, on average counties that have been regulated under the NOx Budget program (nbp = 1) will have a change in NOx emmissions from all power plants in the counties between 2000-2008 of -7.14 tons.
 
-D: When all else is held constant, on average counties that have an average PctBlack above the median (19.909)(D=1) will have a change in annual NOx emmissions from all power plants in the counties between 2000-2008 of -2.21 tons.
+D: When all else is held constant, on average counties that have an average PctBlack above the median (19.31)(D=1) will have a change in NOx emmissions from all power plants in the counties between 2000-2008 of -2.59 tons.
 
-NBP:D : The impact of NOx Budget program on annual NOx emmissions from all power plants in the counties between 2000-2008 is 5.04 tons greater in communities that have an average PctBlack above the median (19.909)(D=1) then communities that have an average PctBlack below the median (19.909)(D=0).
+NBP:D : The impact of NOx Budget program on NOx emmissions from all power plants in the counties between 2000-2008 is 6.37 tons greater in communities that have an average PctBlack above the median (19.31)(D=1) then communities that have an average PctBlack below the median (19.909)(D=0).
 
-Intercept: On average when the county has not been regulated under the NOx Budget program (nbp = 0) and the PctBlack is below the median (19.909)(D=0) the change in annual NOx emmisions from all power plants in the counties between 2000-2008 will be -2.60 tons
+Intercept: On average when the county has not been regulated under the NOx Budget program (nbp = 0) and the PctBlack is below the median (19.31)(D=0) the change in NOx emmisions from all power plants in the counties between 2000-2008 will be -2.42 tons
 
 
 ### (e) What is the predicted Dnox_masstons in a county that was not regulated under NBP and where PctBlack is above the sample median (i.e., where D=1)? Report the 95% confidence interval for this prediction. Make sure to use “heteroskedasticity-robust” standard errors.
@@ -111,4 +111,4 @@ predict(mod3, newdata = pred_data, se.fit = T, interval = 'confidence')
 
   
 ```
-\noindent The predicted annual change in NOx emmissions from all power plants in the counties between 2000-2008 under no regulation from NBP (NBP=0) and when the PctBacl is below the sample median (D=0) is -3.62 tons. The 95% confidence under heterskedasticity-robust standard errors is -4.87 tons - -2.34 tons.
+\noindent The predicted change in NOx emmissions from all power plants in the counties between 2000-2008 under no regulation from NBP (NBP=0) and when the PctBacl is below the sample median (D=0) is -3.52 tons. The 95% confidence under heterskedasticity-robust standard errors is -4.82 tons - -2.21 tons.
