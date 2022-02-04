@@ -87,9 +87,9 @@ mod2 <- lm_robust(dnox_masstons ~ nbp + D + nbp:D, data = data)
 tidy(mod2) %>% 
   kable()
 ```
-\noindent NBP: When all else is held constant, on average counties that have been regulated under the NOx Budget program (nbp = 1) will have a change in NOx emmissions from all power plants in the counties between 2000-2008 of -7.14 tons.
+\noindent NBP: When all else is held constant, on average counties that have been regulated under the NOx Budget program (nbp = 1) will have a change in NOx emmissions from all power plants in the counties between 2000-2008 of -7.14 tons when above the median compared to below the median.
 
-D: When all else is held constant, on average counties that have an average PctBlack above the median (19.31)(D=1) will have a change in NOx emmissions from all power plants in the counties between 2000-2008 of -2.59 tons.
+D: When all else is held constant, on average counties that have an average PctBlack above the median (19.31)(D=1) will have a change in NOx emmissions from all power plants in the counties between 2000-2008 of -2.59 tons when above the median compared to below the median.
 
 NBP:D : The impact of NOx Budget program on NOx emmissions from all power plants in the counties between 2000-2008 is 6.37 tons greater in communities that have an average PctBlack above the median (19.31)(D=1) then communities that have an average PctBlack below the median (19.909)(D=0).
 
